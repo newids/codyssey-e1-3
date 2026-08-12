@@ -108,7 +108,12 @@ def analyze_json():
     filters = data.get("filters")
     patterns = data.get("patterns")
     print("meta:", meta)
-    print("filters:", len(filters))
+    print("✓ size_5  필터 로드 완료 (Cross, X)")
+    print(f"{filters.get("size_5")}")
+    print("✓ size_13 필터 로드 완료 (Cross, X)")
+    print(f"{filters.get("size_13")}")
+    print("✓ size_25 필터 로드 완료 (Cross, X)")
+    print(f"{filters.get("size_25")}")
     print("patterns:", len(patterns))
 
     labels = [
@@ -123,23 +128,31 @@ def analyze_json():
         cross_filter = filters.get(label[0]).get("cross")
         x_filter = filters.get(label[0]).get("x")
 
-        size_5_1 = patterns.get(label[1]).get("input")
-        size_5_1_expected = label_normalization(
+        pattern_1 = patterns.get(label[1]).get("input")
+        pattern_1_expected = label_normalization(
             patterns.get(label[1]).get("expected"))
 
-        result = mac_operation(cross_filter, x_filter, size_5_1)
-        classification(*result)
-        print(f"- -- {label[1]} ---")
-        print(f"Cross 점수: {1.0}")
-        print(f"X 점수: 5.0")
-        print(f"판정: X | expected: X | PASS")
+        result = mac_operation(cross_filter, x_filter, pattern_1)
+        classification_x_cross(label[1], result[0], result[1], pattern_1_expected)
 
-        size_5_2 = patterns.get(label[2]).get("input")
-        size_5_2_expected = label_normalization(
+        pattern_2 = patterns.get(label[2]).get("input")
+        pattern_2_expected = label_normalization(
             patterns.get(label[2]).get("expected"))
 
-        result = mac_operation(cross_filter, x_filter, size_5_2)
-        classification(*result)
+        result = mac_operation(cross_filter, x_filter, pattern_2)
+        classification_x_cross(label[2], result[0], result[1], pattern_2_expected)
+
+
+def classification_x_cross(label, p0, p1, expected):
+    print(f"- -- {label} ---")
+    print(f"Cross 점수: {p0}")
+    print(f"X 점수: {p1}")
+    cross_or_x = CROSS if abs(p0 - p1) > 1e-9 and p0 > p1 \
+        else X if abs(p0 - p1) > 1e-9 and p1 > p0 \
+        else 'UNDECIDED'
+    is_pass = "PASS" if expected == cross_or_x else "FAIL"
+    print(f"판정: {cross_or_x} | expected : {expected} | {is_pass}")
+    print("-" * 10)
 
 
 def classification(point_a, point_b, repeats, elapsed_time):
