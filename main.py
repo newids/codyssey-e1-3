@@ -122,6 +122,8 @@ def analyze_json():
         ["size_25", "size_25_1", "size_25_2"],
     ]
 
+    REPEATS = 10
+    average_times = []
     for label in labels:
         print("\n" + "." * 10)
         print(f"MAC Operation for {label}")
@@ -132,15 +134,35 @@ def analyze_json():
         pattern_1_expected = label_normalization(
             patterns.get(label[1]).get("expected"))
 
-        result = mac_operation(cross_filter, x_filter, pattern_1)
+        result = mac_operation(cross_filter, x_filter, pattern_1, REPEATS)
         classification_x_cross(label[1], result[0], result[1], pattern_1_expected)
+        e_time_1 = result[3]
 
         pattern_2 = patterns.get(label[2]).get("input")
         pattern_2_expected = label_normalization(
             patterns.get(label[2]).get("expected"))
 
-        result = mac_operation(cross_filter, x_filter, pattern_2)
+        result = mac_operation(cross_filter, x_filter, pattern_2, REPEATS)
         classification_x_cross(label[2], result[0], result[1], pattern_2_expected)
+        e_time_2 = result[3]
+
+        average_times.append((e_time_1 + e_time_2) / REPEATS / 2)
+
+    ## point_a / repeats, point_b / repeats, repeats, elapsed_time
+    print(f"#---------------------------------------")
+    print(f"# [3] 성능 분석 (평균/10회)")
+    print(f"#---------------------------------------")
+    print(f"크기       평균 시간(ms)    연산 횟수")
+    print(f"-------------------------------------")
+
+    print(f"--->>> 3×3            0.010           9")
+
+    for idx, n in zip(range(3), [5, 13, 25]):
+        print(f"{n}×{n}\t\t{average_times[idx]:.3f}\t\t{n ** 2}")
+
+    # 5×5        0.031            25
+    # 13×13      0.187           169
+    # 25×25      0.682           625
 
 
 def classification_x_cross(label, p0, p1, expected):
