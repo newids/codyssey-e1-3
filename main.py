@@ -1,13 +1,15 @@
 import time
 import json
 
+
 def input_3x3_matrix(prompt):
     print(prompt)
     matrix = []
     for i in range(3):
         while True:
             try:
-                row = list(map(float, input(f"{i + 1} / 3 > ").strip().split()))
+                row = list(
+                    map(float, input(f"{i + 1} / 3 > ").strip().split()))
                 if len(row) != 3:
                     raise ValueError("3개의 숫자를 입력해야 합니다.")
                 matrix.append(row)
@@ -26,14 +28,15 @@ def mac_operation(filter_a, filter_b, pattern, repeats=10):
         for p, fa in zip(pattern, filter_a):
             for n, f in zip(p, fa):
                 point_a += n * f
-    
+
         for p, fb in zip(pattern, filter_b):
             for n, f in zip(p, fb):
                 point_b += n * f
 
     elapsed_time = (time.time() - start_time) * 1000
 
-    return point_a / repeats, point_b / repeats, repeats, elapsed_time  # Assuming 1 repeat for simplicity
+    # Assuming 1 repeat for simplicity
+    return point_a / repeats, point_b / repeats, repeats, elapsed_time
 
 
 def user_input():
@@ -48,27 +51,31 @@ def user_input():
     print("# " + "-" * 30)
     pattern = input_3x3_matrix("패턴 (3개씩의 숫자를 공백으로 구분하여 3줄 입력)")
 
-    point_a, point_b, repeats, elapsed_time = mac_operation(filter_a, filter_b, pattern)
+    point_a, point_b, repeats, elapsed_time = mac_operation(
+        filter_a, filter_b, pattern)
 
     print("# " + "-" * 30)
-    print(f"# [3] MAC 결과 {'' if abs(point_a - point_b) > 1e-9 and point_b > point_a else '판정 불가'}")
+    print(
+        f"# [3] MAC 결과 {'' if abs(point_a - point_b) > 1e-9 and point_b > point_a else '판정 불가'}")
     print("# " + "-" * 30)
-    classification(point_a, point_b, repeats, elapsed_time) 
+    classification(point_a, point_b, repeats, elapsed_time)
 
 
 def test_mac_operation():
-    f_a = [[0, 1, 0], [1, 1, 1], [0, 1, 0]] ## Cross pattern
-    f_b = [[1, 0, 1], [0, 1, 0], [1, 0, 1]] ## X pattern
+    f_a = [[0, 1, 0], [1, 1, 1], [0, 1, 0]]  # Cross pattern
+    f_b = [[1, 0, 1], [0, 1, 0], [1, 0, 1]]  # X pattern
     pattern = f_a.copy()
     point_a, point_b, repeats, elapsed_time = mac_operation(f_a, f_b, pattern)
-    print(f"Test MAC Operation: filter_a={f_a}, filter_b={f_b}, pattern={pattern}")
+    print(
+        f"Test MAC Operation: filter_a={f_a}, filter_b={f_b}, pattern={pattern}")
     classification(point_a, point_b, repeats, elapsed_time)
 
-    f_a = [[0.0, 1.0, 0.0], [1.0, 1.0, 1.0], [0.0, 1.0, 0.0]] ## Cross pattern
-    f_b = [[1.0, 0.0, 1.0], [0.0, 1.0, 0.0], [1.0, 0.0, 1.0]] ## X pattern
+    f_a = [[0.0, 1.0, 0.0], [1.0, 1.0, 1.0], [0.0, 1.0, 0.0]]  # Cross pattern
+    f_b = [[1.0, 0.0, 1.0], [0.0, 1.0, 0.0], [1.0, 0.0, 1.0]]  # X pattern
     pattern = f_b.copy()
     point_a, point_b, repeats, elapsed_time = mac_operation(f_a, f_b, pattern)
-    print(f"\nTest MAC Operation: filter_a={f_a}, filter_b={f_b}, pattern={pattern}")
+    print(
+        f"\nTest MAC Operation: filter_a={f_a}, filter_b={f_b}, pattern={pattern}")
     classification(point_a, point_b, repeats, elapsed_time)
 
 
@@ -78,7 +85,9 @@ def generate_patterns():
 
 CROSS = "Cross"
 X = "X"
-def label_nomalization(value):
+
+
+def label_normalization(value):
     if value.upper() == 'X':
         return X
     elif value == '+':
@@ -115,7 +124,8 @@ def analyze_json():
         x_filter = filters.get(label[0]).get("x")
 
         size_5_1 = patterns.get(label[1]).get("input")
-        size_5_1_expected = label_nomalization(patterns.get(label[1]).get("expected"))
+        size_5_1_expected = label_normalization(
+            patterns.get(label[1]).get("expected"))
 
         result = mac_operation(cross_filter, x_filter, size_5_1)
         classification(*result)
@@ -125,11 +135,11 @@ def analyze_json():
         print(f"판정: X | expected: X | PASS")
 
         size_5_2 = patterns.get(label[2]).get("input")
-        size_5_2_expected = label_nomalization(patterns.get(label[2]).get("expected"))
+        size_5_2_expected = label_normalization(
+            patterns.get(label[2]).get("expected"))
 
         result = mac_operation(cross_filter, x_filter, size_5_2)
         classification(*result)
-
 
 
 def classification(point_a, point_b, repeats, elapsed_time):
@@ -145,7 +155,7 @@ def main():
         print("=== Mini NPU Simulator ===")
         print("-" * 20)
         print("[모드 선택]")
-        print("-"* 20)
+        print("-" * 20)
         print("1. 사용자 입력(3x3)")
         print("2. data.json 분석")
         print("3. 패턴 생성기")
@@ -166,8 +176,9 @@ def main():
         else:
             print("잘못된 선택입니다. 1-3 사이의 숫자 또는 'Q'를 입력해주세요.")
 
+
 if __name__ == "__main__":
-    try:        
+    try:
         main()
     except NotImplementedError:
         print("해당 기능은 아직 구현되지 않았습니다.")
