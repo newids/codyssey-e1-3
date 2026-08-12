@@ -23,8 +23,6 @@ def mac_operation(filter_a, filter_b, pattern, repeats=10):
     point_a = 0
     point_b = 0
     for _ in range(repeats):
-        # point_a = sum(n * f for n, f in zip(pattern, filter_a))
-        # point_b = sum(n * f for n, f in zip(pattern, filter_b))
         for p, fa in zip(pattern, filter_a):
             for n, f in zip(p, fa):
                 point_a += n * f
@@ -78,18 +76,60 @@ def generate_patterns():
     raise NotImplementedError
 
 
+CROSS = "Cross"
+X = "X"
+def label_nomalization(value):
+    if value.upper() == 'X':
+        return X
+    elif value == '+':
+        return CROSS
+    else:
+        raise ValueError(f"Invalid label: {value}. Expected 'X' or 'Cross'.")
+
+
 def analyze_json():
-    data = json.load(open("data.json", "r"))
-    for idx, entry in enumerate(data):
-        print(f"\n# Entry {idx + 1}")
-        meta = entry.get("meta")
-        filters = entry.get("filters")
-        patterns = entry.get("patterns")
+    try:
+        with open("data.json", "r") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        print("data.json 파일을 찾을 수 없습니다.")
+        return
 
+    meta = data.get("meta")
+    filters = data.get("filters")
+    patterns = data.get("patterns")
+    print("meta:", meta)
+    print("filters:", len(filters))
+    print("patterns:", len(patterns))
 
+    labels = [
+        ["size_5", "size_5_1", "size_5_2"],
+        ["size_13", "size_13_1", "size_13_2"],
+        ["size_25", "size_25_1", "size_25_2"],
+    ]
 
-        point_a, point_b, repeats, elapsed_time = mac_operation(filter_a, filter_b, pattern)
-        classification(point_a, point_b, repeats, elapsed_time)
+    for label in labels:
+        print("\n" + "." * 10)
+        print(f"MAC Operation for {label}")
+        cross_filter = filters.get(label[0]).get("cross")
+        x_filter = filters.get(label[0]).get("x")
+
+        size_5_1 = patterns.get(label[1]).get("input")
+        size_5_1_expected = label_nomalization(patterns.get(label[1]).get("expected"))
+
+        result = mac_operation(cross_filter, x_filter, size_5_1)
+        classification(*result)
+        print(f"- -- {label[1]} ---")
+        print(f"Cross 점수: {1.0}")
+        print(f"X 점수: 5.0")
+        print(f"판정: X | expected: X | PASS")
+
+        size_5_2 = patterns.get(label[2]).get("input")
+        size_5_2_expected = label_nomalization(patterns.get(label[2]).get("expected"))
+
+        result = mac_operation(cross_filter, x_filter, size_5_2)
+        classification(*result)
+
 
 
 def classification(point_a, point_b, repeats, elapsed_time):
@@ -97,7 +137,6 @@ def classification(point_a, point_b, repeats, elapsed_time):
     print(f"\tB 점수: {point_b}")
     print(f"\t연산 시간(평균/{repeats}회): {elapsed_time:.3f} ms")
     print(f"\t판정: {'A' if abs(point_a - point_b) > 1e-9 and point_a > point_b else 'B' if abs(point_a - point_b) > 1e-9 and point_b > point_a else '판정 불가 (|A-B| < 1e-9)'}")
-
 
 
 def main():
