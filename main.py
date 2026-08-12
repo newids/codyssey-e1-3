@@ -1,3 +1,6 @@
+import time
+import json
+
 def input_3x3_matrix(prompt):
     print(prompt)
     matrix = []
@@ -13,9 +16,8 @@ def input_3x3_matrix(prompt):
                 print(f"잘못된 입력입니다: {e}. 다시 시도해주세요.")
     return matrix
 
-def mac_operation(filter_a, filter_b, pattern, repeats=10):
-    import time
 
+def mac_operation(filter_a, filter_b, pattern, repeats=10):
     start_time = time.time()
 
     point_a = 0
@@ -35,6 +37,7 @@ def mac_operation(filter_a, filter_b, pattern, repeats=10):
 
     return point_a / repeats, point_b / repeats, repeats, elapsed_time  # Assuming 1 repeat for simplicity
 
+
 def user_input():
     print("# " + "-" * 30)
     print("# [1] 필터 입력")
@@ -52,11 +55,8 @@ def user_input():
     print("# " + "-" * 30)
     print(f"# [3] MAC 결과 {'' if abs(point_a - point_b) > 1e-9 and point_b > point_a else '판정 불가'}")
     print("# " + "-" * 30)
-    print(f"\tA 점수: {point_a}")
-    print(f"\tB 점수: {point_b}")
-    print(f"\t연산 시간(평균/{repeats}회): {elapsed_time:.3f} ms")
-    print(f"\t판정: {'A' if abs(point_a - point_b) > 1e-9 and point_a > point_b else 'B' if abs(point_a - point_b) > 1e-9 and point_b > point_a else '판정 불가 (|A-B| < 1e-9)'}")
- 
+    classification(point_a, point_b, repeats, elapsed_time) 
+
 
 def test_mac_operation():
     f_a = [[0, 1, 0], [1, 1, 1], [0, 1, 0]] ## Cross pattern
@@ -64,26 +64,41 @@ def test_mac_operation():
     pattern = f_a.copy()
     point_a, point_b, repeats, elapsed_time = mac_operation(f_a, f_b, pattern)
     print(f"Test MAC Operation: filter_a={f_a}, filter_b={f_b}, pattern={pattern}")
-    print(f"\tA 점수: {point_a}")
-    print(f"\tB 점수: {point_b}")
-    print(f"\t연산 시간(평균/{repeats}회): {elapsed_time:.3f} ms")
-    print(f"\t판정: {'A' if abs(point_a - point_b) > 1e-9 and point_a > point_b else 'B' if abs(point_a - point_b) > 1e-9 and point_b > point_a else '판정 불가 (|A-B| < 1e-9)'}")
+    classification(point_a, point_b, repeats, elapsed_time)
 
     f_a = [[0.0, 1.0, 0.0], [1.0, 1.0, 1.0], [0.0, 1.0, 0.0]] ## Cross pattern
     f_b = [[1.0, 0.0, 1.0], [0.0, 1.0, 0.0], [1.0, 0.0, 1.0]] ## X pattern
     pattern = f_b.copy()
     point_a, point_b, repeats, elapsed_time = mac_operation(f_a, f_b, pattern)
     print(f"\nTest MAC Operation: filter_a={f_a}, filter_b={f_b}, pattern={pattern}")
+    classification(point_a, point_b, repeats, elapsed_time)
+
+
+def generate_patterns():
+    raise NotImplementedError
+
+
+def analyze_json():
+    data = json.load(open("data.json", "r"))
+    for idx, entry in enumerate(data):
+        print(f"\n# Entry {idx + 1}")
+        meta = entry.get("meta")
+        filters = entry.get("filters")
+        patterns = entry.get("patterns")
+
+
+
+        point_a, point_b, repeats, elapsed_time = mac_operation(filter_a, filter_b, pattern)
+        classification(point_a, point_b, repeats, elapsed_time)
+
+
+def classification(point_a, point_b, repeats, elapsed_time):
     print(f"\tA 점수: {point_a}")
     print(f"\tB 점수: {point_b}")
     print(f"\t연산 시간(평균/{repeats}회): {elapsed_time:.3f} ms")
     print(f"\t판정: {'A' if abs(point_a - point_b) > 1e-9 and point_a > point_b else 'B' if abs(point_a - point_b) > 1e-9 and point_b > point_a else '판정 불가 (|A-B| < 1e-9)'}")
 
-def generate_patterns():
-    raise NotImplementedError
 
-def analyze_json():
-    raise NotImplementedError
 
 def main():
     while True:
