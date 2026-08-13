@@ -19,6 +19,7 @@ def input_3x3_matrix(prompt):
                 print(f"잘못된 입력입니다: {e}. 다시 시도해주세요.")
     return matrix
 
+
 def mac(patt, filt):
     point = 0
     for i in range(len(patt)):
@@ -92,7 +93,45 @@ def test_mac_operation():
 
 
 def generate_patterns():
-    raise NotImplementedError
+    print("# " + "-" * 30)
+    print("# [보너스] 패턴 생성기")
+    while True:
+        raw = input("생성할 크기 N (홀수 권장, 3~25): ").strip()
+        try:
+            n = int(raw)
+        except ValueError:
+            print("입력 형식 오류: 정수를 입력하세요.")
+            continue
+        if n < 3:
+            print("입력 형식 오류: 3 이상의 크기를 입력하세요.")
+            continue
+        break
+
+    cross_pattern = create_cross()
+    x_pattern = create_x()
+
+    pattern = cross_pattern.copy()
+    point_a, point_b, repeats, elapsed_time = mac_operation(
+        cross_pattern, x_pattern, pattern)
+
+
+def create_cross(size):
+    center = size // 2
+    cross = [[0] * size for _ in range(size)]
+    for i in range(size):
+        for j in range(size):
+            if abs(i - center) == abs(j - center):
+                cross[i][j] = 1
+    return cross
+
+
+def create_x(size):
+    x_pattern = [[0] * size for _ in range(size)]
+    for i in range(size):
+        for j in range(size):
+            if abs(i - j) == 1:
+                x_pattern[i][j] = 1
+    return x_pattern
 
 
 CROSS = "Cross"
@@ -126,7 +165,6 @@ def analyze_json():
 
     labels = [5, 13, 25]
 
-    REPEATS = 10
     average_times = []
     for label in labels:
         print("\n" + "." * 10)
@@ -138,28 +176,28 @@ def analyze_json():
         pattern_1_expected = label_normalization(
             patterns.get(f'size_{label}_1').get("expected"))
 
-        result = mac_operation(cross_filter, x_filter, pattern_1, REPEATS)
-        classification_x_cross(f'size_{label}_1', result[0], result[1], pattern_1_expected)
+        result = mac_operation(cross_filter, x_filter, pattern_1)
+        classification_x_cross(
+            f'size_{label}_1', result[0], result[1], pattern_1_expected)
         e_time_1 = result[3]
 
         pattern_2 = patterns.get(f'size_{label}_2').get("input")
         pattern_2_expected = label_normalization(
             patterns.get(f'size_{label}_2').get("expected"))
 
-        result = mac_operation(cross_filter, x_filter, pattern_2, REPEATS)
-        classification_x_cross(f'size_{label}_2', result[0], result[1], pattern_2_expected)
+        result = mac_operation(cross_filter, x_filter, pattern_2)
+        classification_x_cross(
+            f'size_{label}_2', result[0], result[1], pattern_2_expected)
         e_time_2 = result[3]
 
-        average_times.append((e_time_1 + e_time_2) / REPEATS / 2)
+        average_times.append((e_time_1 + e_time_2) / 2)
 
-    ## point_a / repeats, point_b / repeats, repeats, elapsed_time
+    # point_a / repeats, point_b / repeats, repeats, elapsed_time
     print(f"#---------------------------------------")
     print(f"# [3] 성능 분석 (평균/10회)")
     print(f"#---------------------------------------")
-    print(f"크기       평균 시간(ms)    연산 횟수")
+    print(f"\t크기\t평균 시간(ms)\t연산 횟수")
     print(f"-------------------------------------")
-
-    print(f"--->>> 3×3            0.010           9")
 
     for idx, n in zip(range(3), [5, 13, 25]):
         print(f"{n}×{n}\t\t{average_times[idx]:.3f}\t\t{n ** 2}")
@@ -188,13 +226,14 @@ def classification(point_a, point_b, repeats, elapsed_time):
     print(f"\tA 점수: {point_a}")
     print(f"\tB 점수: {point_b}")
     print(f"\t연산 시간(평균/{repeats}회): {elapsed_time:.3f} ms")
-    print(f"\t판정: {'A' if abs(point_a - point_b) > EPSILON and point_a > point_b 
-                   else 'B' if abs(point_a - point_b) > EPSILON and point_b > point_a 
+    print(f"\t판정: {'A' if abs(point_a - point_b) > EPSILON and point_a > point_b
+                   else 'B' if abs(point_a - point_b) > EPSILON and point_b > point_a
                    else '판정 불가 (|A-B| < 1e-9)'}")
 
 
 def generate_patterns():
     matrix = random()
+
 
 def main():
     while True:
