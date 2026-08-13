@@ -62,19 +62,27 @@ def mac_flat(patt, filt):
     return point
 
 
+def flatten(list):
+    flat = []
+    for row in list:
+        for value in row:
+            flat.append(value)
+    return flat
+
+
 def mac_operation_flat(filter_a, filter_b, pattern, repeats=1):
-    filter_a_flat = map(filter_a)
-    filter_b_flat = map(filter_b)
-    pattern_flat = map(pattern)
+    filter_a_flat = flatten(filter_a)
+    filter_b_flat = flatten(filter_b)
+    pattern_flat = flatten(pattern)
 
     start_time = time.perf_counter()
 
     point_a = 0
     point_b = 0
     for _ in range(repeats):
-        for k in len(pattern_flat):
+        for k in range(len(pattern_flat)):
             point_a += float(pattern_flat[k]) * float(filter_a_flat[k])
-        for k in len(pattern_flat):
+        for k in range(len(pattern_flat)):
             point_b += float(pattern_flat[k]) * float(filter_b_flat[k])
 
     elapsed_time = (time.perf_counter() - start_time) * 1000
@@ -138,12 +146,15 @@ def generate_patterns():
             continue
         break
 
-    cross_pattern = create_cross()
-    x_pattern = create_x()
+    cross_pattern = create_cross(n)
+    x_pattern = create_x(n)
 
     pattern = cross_pattern.copy()
     point_a, point_b, repeats, elapsed_time = mac_operation(
         cross_pattern, x_pattern, pattern)
+    print(
+        f"\nTest MAC Operation: filter_a={cross_pattern}, filter_b={x_pattern}, pattern={pattern}")
+    classification(point_a, point_b, repeats, elapsed_time)
 
 
 def create_cross(size):
