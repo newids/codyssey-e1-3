@@ -30,8 +30,8 @@ def mac(patt, filt):
     return point
 
 
-def mac_operation(filter_a, filter_b, pattern, repeats=10):
-    start_time = time.time()
+def mac_operation(filter_a, filter_b, pattern, repeats=1):
+    start_time = time.perf_counter()
 
     point_a = 0
     point_b = 0
@@ -46,7 +46,38 @@ def mac_operation(filter_a, filter_b, pattern, repeats=10):
         point_a += mac(pattern, filter_a)
         point_b += mac(pattern, filter_b)
 
-    elapsed_time = (time.time() - start_time) * 1000
+    elapsed_time = (time.perf_counter() - start_time) * 1000
+
+    # Assuming 1 repeat for simplicity
+    return point_a / repeats, point_b / repeats, repeats, elapsed_time
+
+
+def mac_flat(patt, filt):
+    point = 0
+    for i in range(len(patt)):
+        row_p = patt[i]
+        row_f = filt[i]
+        for j in range(len(row_p)):
+            point += float(row_p[j]) * float(row_f[j])
+    return point
+
+
+def mac_operation_flat(filter_a, filter_b, pattern, repeats=1):
+    filter_a_flat = map(filter_a)
+    filter_b_flat = map(filter_b)
+    pattern_flat = map(pattern)
+
+    start_time = time.perf_counter()
+
+    point_a = 0
+    point_b = 0
+    for _ in range(repeats):
+        for k in len(pattern_flat):
+            point_a += float(pattern_flat[k]) * float(filter_a_flat[k])
+        for k in len(pattern_flat):
+            point_b += float(pattern_flat[k]) * float(filter_b_flat[k])
+
+    elapsed_time = (time.perf_counter() - start_time) * 1000
 
     # Assuming 1 repeat for simplicity
     return point_a / repeats, point_b / repeats, repeats, elapsed_time
@@ -163,10 +194,9 @@ def analyze_json():
     print("✓ size_13 필터 로드 완료 (Cross, X)")
     print("✓ size_25 필터 로드 완료 (Cross, X)")
 
-    labels = [5, 13, 25]
+    LABELS = [5, 13, 25]
 
-    average_times = []
-    for label in labels:
+    for label in LABELS:
         print("\n" + "." * 10)
         print(f"MAC Operation for {f'size_{label}'}")
         cross_filter = filters.get(f'size_{label}').get("cross")
@@ -190,8 +220,6 @@ def analyze_json():
             f'size_{label}_2', result[0], result[1], pattern_2_expected)
         e_time_2 = result[3]
 
-        average_times.append((e_time_1 + e_time_2) / 2)
-
     # point_a / repeats, point_b / repeats, repeats, elapsed_time
     print(f"#---------------------------------------")
     print(f"# [3] 성능 분석 (평균/10회)")
@@ -199,12 +227,84 @@ def analyze_json():
     print(f"\t크기\t평균 시간(ms)\t연산 횟수")
     print(f"-------------------------------------")
 
-    for idx, n in zip(range(3), [5, 13, 25]):
-        print(f"{n}×{n}\t\t{average_times[idx]:.3f}\t\t{n ** 2}")
+    REPEATS = 10
+    average_times = []
 
+    ## 3x3
+    cross_filter = create_cross(3)
+    x_filter = create_x(3)
+    pattern_1 = cross_filter.copy()
+    result = mac_operation(cross_filter, x_filter, pattern_1, REPEATS)
+    e_time_1 = result[3]
+    pattern_2 = x_filter.copy()
+    result = mac_operation(cross_filter, x_filter, pattern_2)
+    e_time_2 = result[3]
+
+    average_times.append((e_time_1 + e_time_2) / 2)
+
+    for label in LABELS:
+        cross_filter = filters.get(f'size_{label}').get("cross")
+        x_filter = filters.get(f'size_{label}').get("x")
+
+        pattern_1 = patterns.get(f'size_{label}_1').get("input")
+        pattern_1_expected = label_normalization(
+            patterns.get(f'size_{label}_1').get("expected"))
+
+        result = mac_operation(cross_filter, x_filter, pattern_1, REPEATS)
+        e_time_1 = result[3]
+
+        pattern_2 = patterns.get(f'size_{label}_2').get("input")
+        pattern_2_expected = label_normalization(
+            patterns.get(f'size_{label}_2').get("expected"))
+
+        result = mac_operation(cross_filter, x_filter, pattern_2)
+        e_time_2 = result[3]
+
+        average_times.append((e_time_1 + e_time_2) / 2)
+
+    for idx, n in zip(range(4), [3] + LABELS):
+        print(f"\t{n}×{n}\t\t{average_times[idx]:.3f}\t\t{n ** 2}")
+
+    # 3×3        0.010             9
     # 5×5        0.031            25
     # 13×13      0.187           169
     # 25×25      0.682           625
+
+    ## flat_mac_operation
+    ## 3x3
+    cross_filter = create_cross(3)
+    x_filter = create_x(3)
+    pattern_1 = cross_filter.copy()
+    result = mac_operation_flat(cross_filter, x_filter, pattern_1, REPEATS)
+    e_time_1 = result[3]
+    pattern_2 = x_filter.copy()
+    result = mac_operation_flat(cross_filter, x_filter, pattern_2)
+    e_time_2 = result[3]
+
+    average_times.append((e_time_1 + e_time_2) / 2)
+
+    for label in LABELS:
+        cross_filter = filters.get(f'size_{label}').get("cross")
+        x_filter = filters.get(f'size_{label}').get("x")
+
+        pattern_1 = patterns.get(f'size_{label}_1').get("input")
+        pattern_1_expected = label_normalization(
+            patterns.get(f'size_{label}_1').get("expected"))
+
+        result = mac_operation_flat(cross_filter, x_filter, pattern_1, REPEATS)
+        e_time_1 = result[3]
+
+        pattern_2 = patterns.get(f'size_{label}_2').get("input")
+        pattern_2_expected = label_normalization(
+            patterns.get(f'size_{label}_2').get("expected"))
+
+        result = mac_operation_flat(cross_filter, x_filter, pattern_2)
+        e_time_2 = result[3]
+
+        average_times.append((e_time_1 + e_time_2) / 2)
+
+    for idx, n in zip(range(4), [3] + LABELS):
+        print(f"\t{n}×{n}\t\t{average_times[idx]:.3f}\t\t{n ** 2}")
 
 
 EPSILON = 1e-9
@@ -229,10 +329,6 @@ def classification(point_a, point_b, repeats, elapsed_time):
     print(f"\t판정: {'A' if abs(point_a - point_b) > EPSILON and point_a > point_b
                    else 'B' if abs(point_a - point_b) > EPSILON and point_b > point_a
                    else '판정 불가 (|A-B| < 1e-9)'}")
-
-
-def generate_patterns():
-    matrix = random()
 
 
 def main():
